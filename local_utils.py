@@ -3,6 +3,7 @@
 #@Western Washington University
 
 import re
+import _winreg as winkey #Bad? More like that underscore is bad
 testPath="C:\\Python27\\README.txt"
 vRegex="[0-9]+(?:\.[0-9]+)*"
 

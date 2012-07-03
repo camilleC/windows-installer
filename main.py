@@ -1,5 +1,5 @@
 import os
-import command, install, upgrade, fetch, version
+import command, install, upgrade, fetch, version, localversion
 import packagemanager, ourlogging
 
 commandList = {
@@ -10,7 +10,10 @@ commandList = {
             "fetch":(fetch.Command,
                        "Downloads packages."),
             "version":(version.Command,
-                       "Reports information about current packages.")}
+                       "Reports information about current packages."),
+            "localversion":(localversion.Command,
+                        "Discovers local version information")
+                            }
 
 
 class CommandLine():
