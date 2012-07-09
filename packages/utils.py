@@ -1,4 +1,4 @@
-import urllib2,re,calendar, logging,_winreg,ourlogging
+import urllib2,re,calendar, logging,_winreg,ourlogging,platform
 
 from BeautifulSoup import BeautifulSoup
 
@@ -317,34 +317,48 @@ def getInstalledRegkeyVersion(pak):
     least entries for 'key', 'subkey', 'regex', and 'regexpos'
     @return The version installed or None.
     """
+    if(platform.machine =='i386'):
+        if (pak.arch=='x86_64'):
+            return None
+        else:
+            mask=_winreg.KEY_READ
+    else:
+        if pak.arch=='x86_32':
+            mask=_winreg.KEY_READ|_winreg.KEY_WOW64_32KEY
+        elif pak.arch=='x86_64':
+            mask= _winreg.KEY_READ|_winreg.KEY_WOW64_64KEY
+        else:
+            print "sorry not implemented"
+            return None
+            
     try:
     
         # should do a lookup table here
         if pak.regKey == 'HKLM':
-            tempkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, pak.regSubKey)
+            tempkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, pak.regSubKey,0,mask)
         else:
             return None
 
         keys = _winreg.QueryInfoKey(tempkey)[0]
         keynames = sorted([_winreg.EnumKey(tempkey,i) for i in xrange(keys)])
         keynamesstr = "\n".join(keynames)
-        version = re.findall(pak.regRegEx, keynamesstr)[pak.regExPos]
+        version = re.findall(pak.regRegEx, keynamesstr)[int(pak.regExPos)]
         return version
 
     except TypeError as strerror:
         if strerror == 'first argument must be a string or compiled pattern':
-            print 'you are missing or have an invalid regex in %s' %pak
+            logger.debug('you are missing or have an invalid regex in '+pak)
         elif strerror == 'expected string or buffer':
-            print 'your have no value being pulled from the registry'
-        print 'when calling getInstalledRegkeyVersion(%s)' %pak
+            logger.debug('your have no value being pulled from the registry')
+            logger.debug('when calling getInstalledRegkeyVersion'+ pak)
     except WindowsError:
-        print 'The registry key or value could not be found'
-        print 'when calling getInstalledRegkeyVersion(%s)' %pak
+        logger.debug('The registry key or value could not be found')
+        logger.debug( 'when calling getInstalledRegkeyVersion('+pak+')')
     except KeyError as strerror:
-        print 'd did not contain a "%s" entry' % strerror
-        print 'when calling getInstalledRegkeyVersion(%s)' %pak
+        logger.debug( ' did not contain a '+strerror+' entry')
+        logger.debug('when calling getInstalledRegkeyVersion(' +pak+')')
     except:
-        print 'unkown error running getInstalledRegkeyVersion(%s)' %pak
+        logger.debug('unknown error')
     else:
         return None
 
@@ -358,32 +372,47 @@ version on the computer.
 least entries for 'key', 'subkey', 'regex', and 'regexpos'
 @return The version installed or None.
 """
+    if(platform.machine =='i386'):
+        if (pak.arch=='x86_64'):
+            return None
+        else:
+            mask=_winreg.KEY_READ
+    else:
+        if pak.arch=='x86_32':
+            mask=_winreg.KEY_READ|_winreg.KEY_WOW64_32KEY
+        elif pak.arch=='x86_64':
+            mask= _winreg.KEY_READ|_winreg.KEY_WOW64_64KEY
+        else:
+            print "sorry not implemented"
+            return None
     try:
         # should do a lookup table here
         if pak.regKey == 'HKLM':
-            tempkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, pak.regSubKey)
+            tempkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, pak.regSubKey,0,mask)
         else:
             return None
         vals = _winreg.QueryInfoKey(tempkey)[1]
         valnames = [_winreg.EnumValue(tempkey,i)[0] for i in xrange(vals)]
         valnames = sorted(valnames)
         valnamesstr = "\n".join(valnames)
-        version = re.findall(pak.regRegEx, valnamesstr)[pak.regExPos]
+        version = re.findall(pak.regRegEx, valnamesstr)[int(pak.regExPos)]
         return version
+
+
     except TypeError as strerror:
         if strerror == 'first argument must be a string or compiled pattern':
-            print 'you are missing or have an invalid regex in %s' %d
+            logger.debug('you are missing or have an invalid regex in '+pak)
         elif strerror == 'expected string or buffer':
-            print 'your have no value being pulled from the registry'
-        print 'when calling getInstalledRegvalnameVersion(%s)' %pak
+            logger.debug('your have no value being pulled from the registry')
+            logger.debug('when calling getInstalledRegkeyVersion'+ pak)
     except WindowsError:
-        print 'The registry key or value could not be found'
-        print 'when calling getInstalledRegvalnameVersion(%s)' %pak
+        logger.debug('The registry key or value could not be found')
+        logger.debug( 'when calling getInstalledRegkeyVersion('+pak+')')
     except KeyError as strerror:
-        print 'd did not contain a "%s" entry' % strerror
-        print 'when calling getInstalledRegvalnameVersion(%s)' %pak
+        logger.debug( ' did not contain a '+strerror+' entry')
+        logger.debug('when calling getInstalledRegkeyVersion(' +pak+')')
     except:
-        print 'unkown error running getInstalledRegvalnameVersion(%s)' %pak
+        logger.debug('unknown error')
     else:
         return None
 
@@ -397,31 +426,52 @@ version on the computer.
 least entries for 'key', 'subkey', 'value', 'regex', and 'regexpos'
 @return The version installed or None.
 """
+    if(platform.machine =='i386'):
+        if (pak.arch=='x86_64'):
+            return None
+        else:
+            mask=_winreg.KEY_READ
+    else:
+        if pak.arch=='x86_32':
+            mask=_winreg.KEY_READ|_winreg.KEY_WOW64_32KEY
+        elif pak.arch=='x86_64':
+            mask= _winreg.KEY_READ|_winreg.KEY_WOW64_64KEY
+        else:
+            print "sorry not implemented"
+            return None
     try:
+        
         # should do a lookup table here
         if pak.regKey == 'HKLM':
-            tempkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, pak.regSubKey)
+            #print "whatup"
+            tempkey = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, pak.regSubKey,0,mask)
             value = str(_winreg.QueryValueEx(tempkey, pak.regValue)[0])
-            version = re.findall(pak.regRegEx, value)[pak.regExPos]
+            version = re.findall(pak.regRegEx, value)[int(pak.regExPos)]
+           
+          
+                
             return version
+        else:
+            return None
     except TypeError as strerror:
+ 
         if strerror == 'first argument must be a string or compiled pattern':
-            print 'you are missing or have an invalid regex in %s' %pak
+            logger.debug('you are missing or have an invalid regex in '+str(pak))
         elif strerror == 'expected string or buffer':
-            print 'your have no value being pulled from the registry'
-        print 'when calling getInstalledRegvalVersion(%s)' %pak
-    except WindowsError:
-        print 'The registry key or value could not be found'
-        print 'when calling getInstalledRegvalVersion(%s)' %pak
-    except KeyError as strerror:
-        print 'd did not contain a "%s" entry' % strerror
-        print 'when calling getInstalledRegvalVersion(%s)' %d
-    except:
-        print 'unkown error running getInstalledRegvalVersion(%s)' %d
-    else:
-        return None
 
-		
+            logger.debug('your have no value being pulled from the registry')
+            logger.debug('when calling getInstalledRegkeyVersion'+str(pak))
+    except WindowsError:   
+        logger.debug('The registry key or value could not be found')
+        logger.debug( 'when calling getInstalledRegkeyVersion('+str(pak)+')')
+    except KeyError as strerror:
+      
+        logger.debug( ' did not contain a '+strerror+' entry')
+        logger.debug('when calling getInstalledRegkeyVersion(' +str(pak)+')')
+    except:
+
+        logger.debug('unknown error')
+	
 
 def getInstalledFileVersion(pak):
     filepath=pak.localVersionFilePath
@@ -432,6 +482,7 @@ def getInstalledFileVersion(pak):
     Returns the version number if Found
     Returns None if No matches are found, too many machs are found
     """
+    
     try:
         s=open(filePath).read()
         matches=re.findall(pattern,s)
@@ -452,17 +503,20 @@ def getInstalledFileVersion(pak):
 def findInstalledVersions(pak):
     """Takes in a package and attempts to find the installed version(s) If the package is installed."""
     #TODO: Fill in this function
-    #Qtype regkey regval regvalsearch regvalname 	
+    #Qtype regkey regval regvalsearch regvalname
+    print pak.regQueryType
     if pak.regQueryType =="regkey":
+
         return getInstalledRegkeyVersion(pak)
         
-    elif pak.localVersionFilePath =="regval":
+    elif pak.regQueryType =="regval":
+        print("Finding By Regval")
         return getInstalledRegvalVersion(pak)
 
-    elif pak.localVersionFilePath =="regvalname":
+    elif pak.regQueryType =="regvalname":
         return getInstalledRegvalnameVersion(pak)
 
-    elif pak.localVersionFilePath=="regvalsearch":
+    elif pak.regQueryType=="regvalsearch":
         print "Not Implemented My Bad"
         return None
 

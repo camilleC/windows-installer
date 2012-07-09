@@ -47,7 +47,6 @@ class Package:
         self.linkRegex = "" #To be used with Beautiful Soup to scan a page for probable download links
 
 
-
         #Install Information
         self.dependencies = [] #Software that the program Has to have to run
                                #Note: for dependencies that have options such as the Java Runtime Environment or Java Development kit
@@ -69,10 +68,26 @@ class Package:
         self.regExPos=""# A Registry key offset
         self.regVenderName = "" #Name of the vendor in the registry
         self.regProgName = "" #Name of the program in the registry (defaults to programName)
-        self.regVersLocations = ['''SOFTWARE\Wow6432Node''',
+        self.regVersLocations = ['''SOFTWARE\Wow6432Node''',#This doesn't work anymore
                                 '''SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'''] #These are not quite correct but close
 
+        """
+        Under 64 bit windows opening hklm\software opens a different key depending on the architecture of the CALLING application (sry for caps)
+        So 32 bit python would be default open hklm\software\wow6432node, even if it was trying to go to wow6464 node
+        To make things more complicated, it is only possible for a 64 bit app to naviagte to the wow6432node, so there is no path that
+        explictely ends up in the 64 node area for 32 node
 
+        To solve this winreg.OpenKey needs to be called with a permissions mask depending on where it is looking if and only if the underlying
+        architecture is 64 bit.
+
+        TLDR Make things go by:
+        1) If the arch is not 32 bit (platform.platform()!=i386
+            searchPath32=_winreg.KEY_READ|_winreg.KEY_WOW64_32KEY
+            searchPath64=_winreg.KEY_READ|_winreg.KEY_WOW64_64KEY
+	
+        2) winreg.OpenKey(winreg.hklm,yourSubkey,0,searchPath)
+        """
+        self.regArchMask="" #E
 
 
         #Local Version Version Info by File. Hopefullly the above works
