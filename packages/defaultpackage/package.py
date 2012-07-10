@@ -65,12 +65,11 @@ class Package:
         self.regSubKey="" #Where to search within hive
         self.regValue="" #Used when gettting installed version by registry value (as opposed to key)
         self.regRegEx="" #Ick, a regular expression to match key/vals in the registry
+        self.regSubRegEx="" #Used If the version number needs to be extracted from the above regex
         self.regExPos=""# A Registry key offset
         self.regVenderName = "" #Name of the vendor in the registry
         self.regProgName = "" #Name of the program in the registry (defaults to programName)
-        self.regVersLocations = ['''SOFTWARE\Wow6432Node''',#This doesn't work anymore
-                                '''SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'''] #These are not quite correct but close
-
+      
         """
         Under 64 bit windows opening hklm\software opens a different key depending on the architecture of the CALLING application (sry for caps)
         So 32 bit python would be default open hklm\software\wow6432node, even if it was trying to go to wow6464 node
@@ -157,8 +156,8 @@ class Package:
     def findLocalVersion(self):
         """Finds the local version of a program on the system.
         """
-        
-        return findInstalledVersions(self)
+        self.currentVersion=findInstalledVersions(self)
+        return self.currentVersion
                     
         
     def findLatestVersion(self):
@@ -336,11 +335,13 @@ class Package:
         return self.programName
 
     def versionInformation(self):
+        #This is bad, I can't find where it should go tho 
+        #self.currentVersion=self.findLocalVersion()
         return {'current': self.currentVersion,
                 'latest': self.latestVersion}
 
     def parseVersionSyntax(self, string):
-        """Takes in a string an looks for #VERSION# and #DOTLESSVERSION# and deals with it"""
+        """Takes in a string an looks for VERSION# and #DOTLESSVERSION# and deals with it"""
         #TODO: Fix this, doesn't actually parse it just replaces currently
         # As such this function is a major hack!
         
