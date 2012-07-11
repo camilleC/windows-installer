@@ -65,7 +65,6 @@ class Package:
         self.regSubKey="" #Where to search within hive
         self.regValue="" #Used when gettting installed version by registry value (as opposed to key)
         self.regRegEx="" #Ick, a regular expression to match key/vals in the registry
-        self.regSubRegEx="" #Used If the version number needs to be extracted from the above regex
         self.regExPos=""# A Registry key offset
         self.regVenderName = "" #Name of the vendor in the registry
         self.regProgName = "" #Name of the program in the registry (defaults to programName)
