@@ -3,7 +3,7 @@
 # Download the latest version of a program, uninstall a program and handle
 # dependencies for a program.
 
-from ..utils import findHighestVersion,scrapePage,parsePage,downloadFile
+from ..utils import findInstalledVersions,findHighestVersion,scrapePage,parsePage,downloadFile
 import ConfigParser, ourlogging
 
 import re, os
@@ -31,15 +31,23 @@ class Package:
 
         ### CONFIG ###
         # These are values which may appear in a config File
+
+        #General
         self.programName = "" # Name of the program that the user sees Used mostly for documenation purposes
         self.arch = "" # 32bit or 64bit or both specified as x86 or x86_64 or both
                        # Note: Both is for installers like virtualbox that work for both arch and auto select
+
+
+        #Web Fetch Information
         self.url = "" # Main Website URL used as a last resort for searches
         self.versionRegex = "" # Regular expression that matches versions on a page
         self.versionURL = "" # URL used to find latest version used before downloadURL to find version
         self.downloadURL = "" # URL used to find the download for a file
         self.downloadRegex = "" #File to search for (This is depricated and is kept only for legacy purposes)
         self.linkRegex = "" #To be used with Beautiful Soup to scan a page for probable download links
+
+
+        #Install Information
         self.dependencies = [] #Software that the program Has to have to run
                                #Note: for dependencies that have options such as the Java Runtime Environment or Java Development kit
                                #This can contain lists of lists: [["JDK", "JRE"] "FOO"]. This means that either the JDK or JRE are
@@ -50,10 +58,42 @@ class Package:
         self.betaOK = "" # Has a value if beta versions are acceptable
         self.alphaOK = "" # Has a value if alpha versions are acceptable
         self.rcOK = "" # Has a value if rc versions are acceptable
+
+        #Local Version Registry Information
+        self.regQueryType=""#Registry Search Method
+        self.regKey=""#Registry Hive Location
+        self.regSubKey="" #Where to search within hive
+        self.regValue="" #Used when gettting installed version by registry value (as opposed to key)
+        self.regRegEx="" #Ick, a regular expression to match key/vals in the registry
+        self.regExPos=""# A Registry key offset
         self.regVenderName = "" #Name of the vendor in the registry
         self.regProgName = "" #Name of the program in the registry (defaults to programName)
-        self.regVersLocations = ['''SOFTWARE\Wow6432Node''',
-                                '''SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'''] #These are not quite correct but close
+      
+        """
+        Under 64 bit windows opening hklm\software opens a different key depending on the architecture of the CALLING application (sry for caps)
+        So 32 bit python would be default open hklm\software\wow6432node, even if it was trying to go to wow6464 node
+        To make things more complicated, it is only possible for a 64 bit app to naviagte to the wow6432node, so there is no path that
+        explictely ends up in the 64 node area for 32 node
+
+        To solve this winreg.OpenKey needs to be called with a permissions mask depending on where it is looking if and only if the underlying
+        architecture is 64 bit.
+
+        TLDR Make things go by:
+        1) If the arch is not 32 bit (platform.platform()!=i386
+            searchPath32=_winreg.KEY_READ|_winreg.KEY_WOW64_32KEY
+            searchPath64=_winreg.KEY_READ|_winreg.KEY_WOW64_64KEY
+	
+        2) winreg.OpenKey(winreg.hklm,yourSubkey,0,searchPath)
+        """
+        self.regArchMask="" #E
+
+
+        #Local Version Version Info by File. Hopefullly the above works
+        self.localVersionFilePath=""#A Path to a file that can be searched for a version number
+        self.localVersionFileRegex=""#A Regex to match a version number from the file
+
+
+
         self.installDir = "" #Directory that files should be installed to auto fills in "Program Files" or "Program Files (x86)"
                              #Should be handled scanning arch but if more flexability is needed then it can be specified
         ### LEAVE THIS LAST ###
@@ -113,10 +153,11 @@ class Package:
                 logger.debug("Config read error: " + str(NoOption))
         
     def findLocalVersion(self):
-        """Finds the local version of a program online.
-        Uses self.versionRegex to match all versions on self.versionURL"""
-        #TODO: implement me
-        self.currentVersion="Not Implemented"
+        """Finds the local version of a program on the system.
+        """
+        self.currentVersion=findInstalledVersions(self)
+        return self.currentVersion
+                    
         
     def findLatestVersion(self):
         """Attempts to find the latest version of a page """
@@ -293,11 +334,13 @@ class Package:
         return self.programName
 
     def versionInformation(self):
+        #This is bad, I can't find where it should go tho 
+        #self.currentVersion=self.findLocalVersion()
         return {'current': self.currentVersion,
                 'latest': self.latestVersion}
 
     def parseVersionSyntax(self, string):
-        """Takes in a string an looks for #VERSION# and #DOTLESSVERSION# and deals with it"""
+        """Takes in a string an looks for VERSION# and #DOTLESSVERSION# and deals with it"""
         #TODO: Fix this, doesn't actually parse it just replaces currently
         # As such this function is a major hack!
         
