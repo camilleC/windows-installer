@@ -1,0 +1,16 @@
+[main]
+programname = LibreOffice
+url = http://www.libreoffice.org/
+versionRegex = (?<=LibreOffice )[0-9]+(?:\.[0-9]+)*
+versionURL = http://www.libreoffice.org/download/release-notes/
+downloadURL = http://www.libreoffice.org/download/
+downloadregex = http://download.documentfoundation.org/libreoffice/stable/#VERSION#/win/x86/LibO_#VERSION#_Win_x86_install_multi.msi
+installsilentargs = ["/S"]
+dependencies = [["JDK", "JRE"]]
+
+regQueryType=regkey
+arch=x86_32
+regKey=HKLM
+regSubKey=SOFTWARE\\\LibreOffice\LibreOffice
+regRegEx=([0-9]+(?:\.[0-9]+)+)
+regExPos=0
